@@ -1,10 +1,12 @@
 <div align="center">
   <img src="app-icon.png" alt="FrameFit Icon" width="128" height="128">
-          
+              
   # FrameFit
-          
+              
   **A beautiful macOS app to quickly resize any window to preset or custom
   dimensions**
+              
+            
           
         
       
@@ -13,8 +15,8 @@
   [![macOS](https://img.shields.io/badge/macOS-10.15+-blue.svg)](https://www.apple.com/macos/)
   [![Tauri](https://img.shields.io/badge/Tauri-2.0-24C8DB.svg)](https://tauri.app/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6.svg)](https://www.typescriptlang.org/)
-  [![React](https://img.shields.io/badge/React-18.0-61DAFB.svg)](https://reactjs.org/)
-          
+  [![React](https://img.shields.io/badge/React-19.1-61DAFB.svg)](https://reactjs.org/)
+              
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
 </div>
 
@@ -221,7 +223,7 @@ for details.
 
 <div align="center">
   Made with ❤️ for macOS developers and designers
-          
+              
   **[⬆ back to top](#framefit)**
 </div>
 
