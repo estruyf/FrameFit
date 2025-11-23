@@ -1,23 +1,29 @@
 <div align="center">
   <img src="app-icon.png" alt="FrameFit Icon" width="128" height="128">
-  
+          
   # FrameFit
-  
-  **A beautiful macOS app to quickly resize any window to preset or custom dimensions**
+          
+  **A beautiful macOS app to quickly resize any window to preset or custom
+  dimensions**
+          
+        
+      
+    
   
   [![macOS](https://img.shields.io/badge/macOS-10.15+-blue.svg)](https://www.apple.com/macos/)
   [![Tauri](https://img.shields.io/badge/Tauri-2.0-24C8DB.svg)](https://tauri.app/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6.svg)](https://www.typescriptlang.org/)
   [![React](https://img.shields.io/badge/React-18.0-61DAFB.svg)](https://reactjs.org/)
-  
+          
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
 </div>
 
----
+
 
 ## ✨ Features
 
-- 🎯 **Quick Presets** - Instantly resize windows to common device dimensions (iPhone, iPad, Desktop)
+- 🎯 **Quick Presets** - Instantly resize windows to common device dimensions
+  (iPhone, iPad, Desktop)
 - 🎨 **Custom Sizes** - Set any width and height for precise window dimensions
 - 📍 **Auto-Center** - Optionally center windows on screen after resizing
 - 💾 **Custom Presets** - Save your frequently used sizes for quick access
@@ -43,13 +49,14 @@
 ### Installation
 
 #### Option 1: Download Release (Coming Soon)
-Download the latest `.dmg` from the [Releases](https://github.com/yourusername/framefit-mac/releases) page.
+Download the latest `.dmg` from the
+[Releases](https://github.com/estruyf/FrameFit/releases) page.
 
 #### Option 2: Build from Source
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/framefit-mac.git
+   git clone https://github.com/estruyf/FrameFit.git
    cd framefit-mac
    ```
 
@@ -150,7 +157,8 @@ FrameFit requires the following permissions:
 - **File System** - To save/load preset configurations
 - **Dialog** - To show file picker for import/export
 
-All permissions are used solely for the app's core functionality and no data is collected or transmitted.
+All permissions are used solely for the app's core functionality and no data is
+collected or transmitted.
 
 ## 🤝 Contributing
 
@@ -190,25 +198,36 @@ npm run tauri build  # Build production app
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
+for details.
 
 ## 🙏 Acknowledgments
 
-- Inspired by [ResizeMe](https://burkeholland.github.io/ResizeMe/) by [Burke Holland](https://github.com/burkeholland)
+- Inspired by [ResizeMe](https://burkeholland.github.io/ResizeMe/) by
+  [Burke Holland](https://github.com/burkeholland)
 - Built with [Tauri](https://tauri.app/)
-- Created with [CommandCode.ai](https://commandcode.ai) - AI-powered coding assistant
+- Created with [CommandCode.ai](https://commandcode.ai) - AI-powered coding
+  assistant
 - Icons and design inspired by modern macOS apps
 - Community feedback and contributions
 
 ## 📧 Contact
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/framefit-mac/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/framefit-mac/discussions)
+- **Issues**: [GitHub Issues](https://github.com/estruyf/FrameFit/issues)
+- **Discussions**:
+  [GitHub Discussions](https://github.com/estruyf/FrameFit/discussions)
 
----
+
 
 <div align="center">
   Made with ❤️ for macOS developers and designers
-  
+          
   **[⬆ back to top](#framefit)**
+</div>
+
+<div align="center">
+   <a
+   href="https://visitorbadge.io/status?path=https%3A%2F%2Fgithub.com%2Festruyf%2FFrameFit"><img
+   src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2Festruyf%2FFrameFit&countColor=%23263759"
+   /></a>
 </div>
