@@ -1,5 +1,7 @@
 mod window_manager;
-use tauri::{Manager, TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
+use tauri::{TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
+use tauri::tray::TrayIconBuilder;
+use tauri::menu::{MenuBuilder, SubmenuBuilder};
 use window_manager::{get_frontmost_window, list_windows, resize_window, resize_window_by_id, check_accessibility_permissions, WindowInfo, ResizeRequest};
 
 #[tauri::command]
@@ -31,7 +33,19 @@ fn check_permissions() -> bool {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .on_menu_event(|window, event| {
+            match event.id.as_ref() {
+                "quit" => std::process::exit(0),
+                _ => {}
+            }
+        })
         .setup(|app| {
+            // Build menu only on macOS
+            #[cfg(target_os = "macos")]
+            {
+                let tray = TrayIconBuilder::new().icon(app.default_window_icon().unwrap().clone()).build(app)?;
+            }
+
             let win_builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
                 .title("FrameFit")
                 .inner_size(600.0, 850.0)
