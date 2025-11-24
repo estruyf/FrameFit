@@ -76,19 +76,20 @@ function AppContent() {
           setHeight(h);
           await resizeFrontmostByDimensions(w, h);
         } else if (action.startsWith("custom_preset_")) {
-          // Handle dynamic custom preset IDs
-          const indexStr = action.replace("custom_preset_", "");
-          const index = parseInt(indexStr, 10);
+          // Handle dynamic custom preset IDs (now based on preset name)
+          const presetName = action.replace("custom_preset_", "").replace(/_/g, " ");
 
-          if (!isNaN(index)) {
+          if (presetName) {
             const store = await Store.load("presets.json");
-            const customPresetsArray = await store.get("customPresets");
+            const customPresetsData = await store.get("customPresets");
 
-            if (Array.isArray(customPresetsArray) && customPresetsArray[index]) {
-              const preset = customPresetsArray[index];
-              setWidth(preset.width);
-              setHeight(preset.height);
-              await resizeFrontmostByDimensions(preset.width, preset.height);
+            if (Array.isArray(customPresetsData)) {
+              const preset = customPresetsData.find((p: any) => p.name.toLowerCase() === presetName.toLowerCase());
+              if (preset) {
+                setWidth(preset.width);
+                setHeight(preset.height);
+                await resizeFrontmostByDimensions(preset.width, preset.height);
+              }
             }
           }
         }

@@ -3,6 +3,7 @@ import { DEFAULT_PRESETS } from "../context/AppContext";
 import { Store } from "@tauri-apps/plugin-store";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { save } from "@tauri-apps/plugin-dialog";
+import { invoke } from "@tauri-apps/api/core";
 
 interface Preset {
   name: string;
@@ -60,6 +61,13 @@ export function usePresetManagement() {
       await store.set("customPresets", customPresets);
       await store.save();
       setPresets([...DEFAULT_PRESETS, ...customPresets]);
+
+      // Rebuild the tray menu with updated presets
+      try {
+        await invoke("rebuild_tray_menu", { customPresets });
+      } catch (error) {
+        console.error("Failed to rebuild tray menu:", error);
+      }
     } catch (error) {
       console.error("Failed to save presets:", error);
       setMessage("❌ Failed to save presets");

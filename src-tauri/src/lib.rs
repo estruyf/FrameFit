@@ -2,7 +2,18 @@ mod window_manager;
 use tauri::{TitleBarStyle, WebviewUrl, WebviewWindowBuilder, Manager, Emitter};
 use tauri::tray::TrayIconBuilder;
 use tauri::menu::{MenuBuilder, SubmenuBuilder};
+use tauri_plugin_store::StoreExt;
 use window_manager::{get_frontmost_window, list_windows, resize_window, resize_window_by_id, check_accessibility_permissions, WindowInfo, ResizeRequest};
+use serde::{Deserialize, Serialize};
+
+const TRAY_ID: &str = "main_tray";
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Preset {
+    pub name: String,
+    pub width: i32,
+    pub height: i32,
+}
 
 #[tauri::command]
 fn get_windows() -> Result<Vec<WindowInfo>, String> {
@@ -28,6 +39,101 @@ fn resize_specific_window(window_id: u32, width: i32, height: i32, center: bool)
 #[tauri::command]
 fn check_permissions() -> bool {
     check_accessibility_permissions()
+}
+
+#[tauri::command]
+async fn rebuild_tray_menu(app_handle: tauri::AppHandle, custom_presets: Vec<Preset>) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        eprintln!("Rebuilding tray menu with {} custom presets", custom_presets.len());
+        
+        // Remove the old tray if it exists
+        if let Some(_) = app_handle.remove_tray_by_id(TRAY_ID) {
+            eprintln!("Removed old tray menu");
+        }
+        
+        // Build default presets submenu with consistent IDs
+        let preset_iphone_se = tauri::menu::MenuItem::with_id(&app_handle, "preset_iphone_se", "iPhone SE (375×667)", true, None::<&str>)
+            .map_err(|e| e.to_string())?;
+        let preset_iphone_14 = tauri::menu::MenuItem::with_id(&app_handle, "preset_iphone_14", "iPhone 14 (390×844)", true, None::<&str>)
+            .map_err(|e| e.to_string())?;
+        let preset_ipad = tauri::menu::MenuItem::with_id(&app_handle, "preset_ipad", "iPad (768×1024)", true, None::<&str>)
+            .map_err(|e| e.to_string())?;
+        let preset_hd = tauri::menu::MenuItem::with_id(&app_handle, "preset_hd", "HD (1280×720)", true, None::<&str>)
+            .map_err(|e| e.to_string())?;
+        let preset_fhd = tauri::menu::MenuItem::with_id(&app_handle, "preset_fhd", "FHD (1920×1080)", true, None::<&str>)
+            .map_err(|e| e.to_string())?;
+
+        // Build custom presets with consistent IDs based on preset name
+        let mut custom_items = Vec::new();
+        for preset in custom_presets.iter() {
+            let label = format!("{} ({}×{})", preset.name, preset.width, preset.height);
+            // Use a sanitized version of the preset name as the ID to keep it stable
+            let safe_id = format!("custom_preset_{}", preset.name.to_lowercase().replace(" ", "_"));
+            eprintln!("Adding custom preset: {} with id: {}", label, safe_id);
+            let item = tauri::menu::MenuItem::with_id(&app_handle, &safe_id, &label, true, None::<&str>)
+                .map_err(|e| e.to_string())?;
+            custom_items.push(item);
+        }
+
+        // Build presets submenu
+        let presets_menu = if custom_items.is_empty() {
+            SubmenuBuilder::new(&app_handle, "Presets")
+                .item(&preset_iphone_se)
+                .item(&preset_iphone_14)
+                .item(&preset_ipad)
+                .item(&preset_hd)
+                .item(&preset_fhd)
+                .build()
+                .map_err(|e| e.to_string())?
+        } else {
+            let mut builder = SubmenuBuilder::new(&app_handle, "Presets")
+                .item(&preset_iphone_se)
+                .item(&preset_iphone_14)
+                .item(&preset_ipad)
+                .item(&preset_hd)
+                .item(&preset_fhd)
+                .separator();
+            for item in &custom_items {
+                builder = builder.item(item);
+            }
+            builder.build().map_err(|e| e.to_string())?
+        };
+
+        let show_window_item = tauri::menu::MenuItem::with_id(&app_handle, "show_window", "Show Window", true, None::<&str>)
+            .map_err(|e| e.to_string())?;
+        let quit_item = tauri::menu::MenuItem::with_id(&app_handle, "quit_tray", "Quit", true, None::<&str>)
+            .map_err(|e| e.to_string())?;
+
+        // Build tray menu
+        let tray_menu = SubmenuBuilder::new(&app_handle, "FrameFit")
+            .item(&presets_menu)
+            .separator()
+            .item(&show_window_item)
+            .item(&quit_item)
+            .build()
+            .map_err(|e| e.to_string())?;
+
+        // Create a new tray with the fixed ID
+        match TrayIconBuilder::with_id(TRAY_ID)
+            .icon(app_handle.default_window_icon().unwrap().clone())
+            .menu(&tray_menu)
+            .build(&app_handle) {
+            Ok(_tray) => {
+                eprintln!("Successfully created new tray menu with id: {}", TRAY_ID);
+                Ok(())
+            }
+            Err(e) => {
+                eprintln!("Failed to create tray: {:?}", e);
+                Err(format!("Failed to rebuild tray menu: {}", e))
+            }
+        }
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        Ok(())
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -83,6 +189,17 @@ pub fn run() {
                 app.set_menu(menu)?;
 
                 // Create tray menu with presets - build dynamically based on custom presets
+                // Get custom presets from store
+                let mut custom_presets = Vec::new();
+                
+                if let Ok(store_instance) = app.store("presets.json") {
+                    if let Some(presets_value) = store_instance.get("customPresets") {
+                        if let Ok(presets) = serde_json::from_value::<Vec<Preset>>(presets_value) {
+                            custom_presets = presets;
+                        }
+                    }
+                }
+
                 // Build default presets submenu
                 let preset_iphone_se = tauri::menu::MenuItem::with_id(app, "preset_iphone_se", "iPhone SE (375×667)", true, None::<&str>)?;
                 let preset_iphone_14 = tauri::menu::MenuItem::with_id(app, "preset_iphone_14", "iPhone 14 (390×844)", true, None::<&str>)?;
@@ -90,14 +207,42 @@ pub fn run() {
                 let preset_hd = tauri::menu::MenuItem::with_id(app, "preset_hd", "HD (1280×720)", true, None::<&str>)?;
                 let preset_fhd = tauri::menu::MenuItem::with_id(app, "preset_fhd", "FHD (1920×1080)", true, None::<&str>)?;
 
-                let presets_menu = SubmenuBuilder::new(app, "Presets")
-                    .items(&[&preset_iphone_se, &preset_iphone_14, &preset_ipad, &preset_hd, &preset_fhd])
-                    .build()?;
+                // Build custom presets
+                let mut custom_items = Vec::new();
+                for preset in custom_presets.iter() {
+                    let label = format!("{} ({}×{})", preset.name, preset.width, preset.height);
+                    let safe_id = format!("custom_preset_{}", preset.name.to_lowercase().replace(" ", "_"));
+                    let item = tauri::menu::MenuItem::with_id(app, &safe_id, &label, true, None::<&str>)?;
+                    custom_items.push(item);
+                }
+
+                // Build presets submenu
+                let presets_menu = if custom_items.is_empty() {
+                    SubmenuBuilder::new(app, "Presets")
+                        .item(&preset_iphone_se)
+                        .item(&preset_iphone_14)
+                        .item(&preset_ipad)
+                        .item(&preset_hd)
+                        .item(&preset_fhd)
+                        .build()?
+                } else {
+                    let mut builder = SubmenuBuilder::new(app, "Presets")
+                        .item(&preset_iphone_se)
+                        .item(&preset_iphone_14)
+                        .item(&preset_ipad)
+                        .item(&preset_hd)
+                        .item(&preset_fhd)
+                        .separator();
+                    for item in &custom_items {
+                        builder = builder.item(item);
+                    }
+                    builder.build()?
+                };
 
                 let show_window_item = tauri::menu::MenuItem::with_id(app, "show_window", "Show Window", true, None::<&str>)?;
                 let quit_item = tauri::menu::MenuItem::with_id(app, "quit_tray", "Quit", true, None::<&str>)?;
 
-                // Build tray menu with static presets
+                // Build tray menu
                 let tray_menu = SubmenuBuilder::new(app, "FrameFit")
                     .item(&presets_menu)
                     .separator()
@@ -105,7 +250,7 @@ pub fn run() {
                     .item(&quit_item)
                     .build()?;
 
-                let _tray = TrayIconBuilder::new()
+                let _tray = TrayIconBuilder::with_id(TRAY_ID)
                     .icon(app.default_window_icon().unwrap().clone())
                     .menu(&tray_menu)
                     .build(app)?;
@@ -162,7 +307,8 @@ pub fn run() {
             get_windows,
             resize_frontmost_window,
             resize_specific_window,
-            check_permissions
+            check_permissions,
+            rebuild_tray_menu
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
