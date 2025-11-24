@@ -1,6 +1,6 @@
 {
   "name": "framefit",
-  "private": true,
+  "description": "An app for resizing and fitting windows",
   "version": "0.1.0",
   "type": "module",
   "scripts": {
