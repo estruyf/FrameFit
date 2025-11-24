@@ -63,7 +63,7 @@ function AppContent() {
           <div className="permissions-modal">
             <h2>🔒 Accessibility Permissions Required</h2>
             <p>FrameFit needs accessibility permissions to resize windows.</p>
-            
+
             <div className="instructions">
               <h3>How to enable:</h3>
               <ol>
@@ -74,12 +74,12 @@ function AppContent() {
                 <li>Find and select <strong>FrameFit</strong></li>
               </ol>
             </div>
-            
+
             <p className="note">After enabling, you may need to restart the app.</p>
           </div>
         </div>
       )}
-      
+
       <div className="app">
         <div className="header">
           <h1>FrameFit</h1>
@@ -100,159 +100,159 @@ function AppContent() {
           </div>
         </div>
 
-      <div className="presets">
-        {presets.map((size, index) => (
-          <div key={index} className="preset-wrapper">
-            <button
-              onClick={() => {
-                setWidth(size.width);
-                setHeight(size.height);
-              }}
-              className={`preset-btn ${width === size.width && height === size.height ? 'active' : ''}`}
-            >
-              <div className="preset-name">{size.name}</div>
-              <div className="preset-size">{size.width} × {size.height}</div>
-            </button>
-            {index >= DEFAULT_PRESETS.length && (
+        <div className="presets">
+          {presets.map((size, index) => (
+            <div key={index} className="preset-wrapper">
               <button
-                className="delete-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deletePreset(index);
+                onClick={() => {
+                  setWidth(size.width);
+                  setHeight(size.height);
                 }}
-                title="Delete preset"
+                className={`preset-btn ${width === size.width && height === size.height ? 'active' : ''}`}
               >
-                ×
+                <div className="preset-name">{size.name}</div>
+                <div className="preset-size">{size.width} × {size.height}</div>
               </button>
-            )}
-          </div>
-        ))}
-        <button
-          onClick={() => setShowAddPreset(!showAddPreset)}
-          className="preset-btn add-btn"
-        >
-          <div className="preset-name">+</div>
-          <div className="preset-size">Add</div>
-        </button>
-      </div>
-
-      {showAddPreset && (
-        <div className="add-preset-form">
-          <input
-            type="text"
-            placeholder="Preset name"
-            value={newPresetName}
-            onChange={(e) => setNewPresetName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addPreset(width, height)}
-            autoFocus
-          />
-          <div className="form-actions">
-            <button onClick={() => addPreset(width, height)} className="btn btn-primary btn-sm">
-              Save
-            </button>
-            <button onClick={() => {
-              setShowAddPreset(false);
-              setNewPresetName("");
-            }} className="btn btn-secondary btn-sm">
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="custom-size">
-        <div className="input-wrapper">
-          <label>Width</label>
-          <input
-            type="number"
-            value={width}
-            onChange={(e) => setWidth(Number(e.target.value))}
-            min="100"
-            max="5000"
-          />
-        </div>
-        <div className="input-wrapper">
-          <label>Height</label>
-          <input
-            type="number"
-            value={height}
-            onChange={(e) => setHeight(Number(e.target.value))}
-            min="100"
-            max="5000"
-          />
-        </div>
-      </div>
-
-      <div className="center-option">
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            checked={centerWindow}
-            onChange={(e) => setCenterWindow(e.target.checked)}
-          />
-          <span>Center window after resize</span>
-        </label>
-      </div>
-
-      <div className="actions">
-        <button
-          onClick={() => resizeFrontmost()}
-          disabled={loading || !hasPermissions}
-          className="btn btn-primary"
-        >
-          Resize Top Window
-        </button>
-        <button
-          onClick={() => {
-            setShowWindowList(!showWindowList);
-            if (!showWindowList) loadWindows();
-          }}
-          className="btn btn-secondary"
-        >
-          {showWindowList ? 'Hide' : 'Select'} Window
-        </button>
-      </div>
-
-      {showWindowList && (
-        <div className="window-list">
-          <div className="window-list-header">
-            <span>Select a window to resize</span>
-            <button onClick={loadWindows} className="btn-icon" disabled={loading}>
-              ↻
-            </button>
-          </div>
-          <div className="window-items">
-            {windows.map((window) => (
-              <div
-                key={window.id}
-                className={`window-item ${selectedWindow === window.id ? "selected" : ""}`}
-                onClick={() => setSelectedWindow(window.id)}
-              >
-                <div className="window-app">{window.app_name}</div>
-                <div className="window-title">{window.title || "(No title)"}</div>
-                <div className="window-dims">{window.width} × {window.height}</div>
-              </div>
-            ))}
-          </div>
+              {index >= DEFAULT_PRESETS.length && (
+                <button
+                  className="delete-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deletePreset(index);
+                  }}
+                  title="Delete preset"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
           <button
-            onClick={() => resizeSelected(selectedWindow)}
-            disabled={loading || !hasPermissions || selectedWindow === null}
-            className="btn btn-primary"
+            onClick={() => setShowAddPreset(!showAddPreset)}
+            className="preset-btn add-btn"
           >
-            Resize Selected
+            <div className="preset-name">+</div>
+            <div className="preset-size">Add</div>
           </button>
         </div>
-      )}
 
-      {message && (
-        <div
-          className={`toast ${message.includes("❌") ? "error" : message.includes("⚠️") ? "warning" : "success"}`}
-          onClick={() => setMessage("")}
-        >
-          {message}
-          <span className="toast-dismiss">×</span>
+        {showAddPreset && (
+          <div className="add-preset-form">
+            <input
+              type="text"
+              placeholder="Preset name"
+              value={newPresetName}
+              onChange={(e) => setNewPresetName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addPreset(width, height)}
+              autoFocus
+            />
+            <div className="form-actions">
+              <button onClick={() => addPreset(width, height)} className="btn btn-primary btn-sm">
+                Save
+              </button>
+              <button onClick={() => {
+                setShowAddPreset(false);
+                setNewPresetName("");
+              }} className="btn btn-secondary btn-sm">
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="custom-size">
+          <div className="input-wrapper">
+            <label>Width</label>
+            <input
+              type="number"
+              value={width}
+              onChange={(e) => setWidth(Number(e.target.value))}
+              min="100"
+              max="5000"
+            />
+          </div>
+          <div className="input-wrapper">
+            <label>Height</label>
+            <input
+              type="number"
+              value={height}
+              onChange={(e) => setHeight(Number(e.target.value))}
+              min="100"
+              max="5000"
+            />
+          </div>
         </div>
-      )}
+
+        <div className="center-option">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={centerWindow}
+              onChange={(e) => setCenterWindow(e.target.checked)}
+            />
+            <span>Center window after resize</span>
+          </label>
+        </div>
+
+        <div className="actions">
+          <button
+            onClick={() => resizeFrontmost()}
+            disabled={loading || !hasPermissions}
+            className="btn btn-primary"
+          >
+            Resize Top Window
+          </button>
+          <button
+            onClick={() => {
+              setShowWindowList(!showWindowList);
+              if (!showWindowList) loadWindows();
+            }}
+            className="btn btn-secondary"
+          >
+            {showWindowList ? 'Hide' : 'Select'} Window
+          </button>
+        </div>
+
+        {showWindowList && (
+          <div className="window-list">
+            <div className="window-list-header">
+              <span>Select a window to resize</span>
+              <button onClick={loadWindows} className="btn-icon" disabled={loading}>
+                ↻
+              </button>
+            </div>
+            <div className="window-items">
+              {windows.map((window) => (
+                <div
+                  key={window.id}
+                  className={`window-item ${selectedWindow === window.id ? "selected" : ""}`}
+                  onClick={() => setSelectedWindow(window.id)}
+                >
+                  <div className="window-app">{window.app_name}</div>
+                  <div className="window-title">{window.title || "(No title)"}</div>
+                  <div className="window-dims">{window.width} × {window.height}</div>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => resizeSelected(selectedWindow)}
+              disabled={loading || !hasPermissions || selectedWindow === null}
+              className="btn btn-primary"
+            >
+              Resize Selected
+            </button>
+          </div>
+        )}
+
+        {message && (
+          <div
+            className={`toast ${message.includes("❌") ? "error" : message.includes("⚠️") ? "warning" : "success"}`}
+            onClick={() => setMessage("")}
+          >
+            {message}
+            <span className="toast-dismiss">×</span>
+          </div>
+        )}
       </div>
     </div>
   );
