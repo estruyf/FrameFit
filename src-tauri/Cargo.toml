@@ -1,6 +1,6 @@
 [package]
 name = "FrameFit"
-version = "0.1.0"
+version = "0.2.0"
 description = "An app for resizing and fitting windows"
 authors = ["Elio Struyf"]
 edition = "2021"
