@@ -79,11 +79,11 @@ function AppContent() {
           // Handle dynamic custom preset IDs
           const indexStr = action.replace("custom_preset_", "");
           const index = parseInt(indexStr, 10);
-          
+
           if (!isNaN(index)) {
             const store = await Store.load("presets.json");
             const customPresetsArray = await store.get("customPresets");
-            
+
             if (Array.isArray(customPresetsArray) && customPresetsArray[index]) {
               const preset = customPresetsArray[index];
               setWidth(preset.width);
