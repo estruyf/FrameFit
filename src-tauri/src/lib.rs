@@ -126,6 +126,16 @@ pub fn run() {
 
             let window = win_builder.build().unwrap();
 
+            // Handle window close event - minimize to tray instead of closing
+            let window_clone = window.clone();
+            window.on_window_event(move |event| {
+                use tauri::WindowEvent;
+                if let WindowEvent::CloseRequested { api, .. } = event {
+                    api.prevent_close();
+                    let _ = window_clone.hide();
+                }
+            });
+
             // set background color only when building for macOS
             #[cfg(target_os = "macos")]
             {
