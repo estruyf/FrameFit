@@ -80,26 +80,41 @@ function AppContent() {
         </div>
       )}
 
-      <div className="app">
-        <div className="header">
-          <h1>FrameFit</h1>
-          <div className="header-actions">
-            {!hasPermissions && <div className="badge warning">No Permissions</div>}
-            <div className="menu-wrapper">
-              <button className="btn-icon" onClick={() => setShowMenu(!showMenu)}>
-                ⋮
-              </button>
-              {showMenu && (
-                <div className="menu">
-                  <button onClick={() => { exportPresets(); setShowMenu(false); }}>Export Presets</button>
-                  <button onClick={() => { importPresetsHandler(); setShowMenu(false); }}>Import Presets</button>
-                  <button onClick={() => { resetPresets(); setShowMenu(false); }}>Reset to Defaults</button>
-                </div>
-              )}
-            </div>
+      <div className="header title__bar">
+        <h1 className="app__title">FrameFit</h1>
+        <div className="tile__bar">
+          <div className="tile">
+            <span className="tile__label">Size</span>
+            <span className="tile__value">{width} × {height}</span>
+          </div>
+          <div className="tile">
+            <span className="tile__label">Windows</span>
+            <span className="tile__value">{windows.length}</span>
+          </div>
+          <div className="tile">
+            <span className="tile__label">Center</span>
+            <span className="tile__value">{centerWindow ? '✓' : '✗'}</span>
           </div>
         </div>
 
+        <div className="header-actions">
+          {!hasPermissions && <div className="badge warning">No Permissions</div>}
+          <div className="menu-wrapper">
+            <button className="btn-icon" onClick={() => setShowMenu(!showMenu)}>
+              ⋮
+            </button>
+            {showMenu && (
+              <div className="menu">
+                <button onClick={() => { exportPresets(); setShowMenu(false); }}>Export Presets</button>
+                <button onClick={() => { importPresetsHandler(); setShowMenu(false); }}>Import Presets</button>
+                <button onClick={() => { resetPresets(); setShowMenu(false); }}>Reset to Defaults</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="wrapper">
         <div className="presets">
           {presets.map((size, index) => (
             <div key={index} className="preset-wrapper">
@@ -229,7 +244,7 @@ function AppContent() {
                   onClick={() => setSelectedWindow(window.id)}
                 >
                   <div className="window-app">{window.app_name}</div>
-                  <div className="window-title">{window.title || "(No title)"}</div>
+                  {window.title && <div className="window-title">{window.title}</div>}
                   <div className="window-dims">{window.width} × {window.height}</div>
                 </div>
               ))}

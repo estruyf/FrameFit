@@ -1,5 +1,5 @@
 mod window_manager;
-
+use tauri::{Manager, TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
 use window_manager::{get_frontmost_window, list_windows, resize_window, resize_window_by_id, check_accessibility_permissions, WindowInfo, ResizeRequest};
 
 #[tauri::command]
@@ -31,6 +31,40 @@ fn check_permissions() -> bool {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .setup(|app| {
+            let win_builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
+                .title("FrameFit")
+                .inner_size(600.0, 850.0)
+                .resizable(false);
+
+            // set transparent title bar only when building for macOS
+            #[cfg(target_os = "macos")]
+            let win_builder = win_builder.title_bar_style(TitleBarStyle::Transparent);
+
+            let window = win_builder.build().unwrap();
+
+            // set background color only when building for macOS
+            #[cfg(target_os = "macos")]
+            {
+                use cocoa::appkit::{NSColor, NSWindow};
+                use cocoa::base::{id, nil};
+
+                let ns_window = window.ns_window().unwrap() as id;
+                unsafe {
+                    // Set background color to match the gradient start #667eea
+                    let bg_color = NSColor::colorWithRed_green_blue_alpha_(
+                        nil,
+                        89.0 / 255.0,   // #5966bf red
+                        102.0 / 255.0,  // #5966bf green
+                        191.0 / 255.0,  // #5966bf blue
+                        1.0,
+                    );
+                    ns_window.setBackgroundColor_(bg_color);
+                }
+            }
+
+            Ok(())
+        })
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())

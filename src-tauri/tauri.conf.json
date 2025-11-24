@@ -10,16 +10,7 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "windows": [
-      {
-        "title": "FrameFit",
-        "width": 600,
-        "height": 850,
-        "resizable": false,
-        "center": true,
-        "label": "main"
-      }
-    ],
+    "windows": [],
     "security": {
       "csp": null
     }
