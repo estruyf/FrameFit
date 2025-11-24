@@ -64,7 +64,7 @@ pub fn list_windows() -> Result<Vec<WindowInfo>, String> {
 
         let count = CFArrayGetCount(window_list);
         let mut windows = Vec::new();
-        let excluded_apps = vec!["Dock", "Window Server", "framefit"];
+        let excluded_apps = vec!["Dock", "Window Server", "FrameFit", "framefit"];
 
         for i in 0..count {
             let window_info = CFArrayGetValueAtIndex(window_list, i) as CFDictionaryRef;
@@ -72,7 +72,7 @@ pub fn list_windows() -> Result<Vec<WindowInfo>, String> {
             if let Some(window) = parse_window_info(window_info) {
                 if window.width > 50 
                     && window.height > 50 
-                    && !excluded_apps.contains(&window.app_name.as_str())
+                    && !excluded_apps.iter().any(|app| app.eq_ignore_ascii_case(&window.app_name))
                 {
                     windows.push(window);
                 }
