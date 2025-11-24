@@ -5,10 +5,11 @@ use tauri::menu::{MenuBuilder, SubmenuBuilder};
 use tauri_plugin_store::StoreExt;
 use window_manager::{get_frontmost_window, list_windows, resize_window, resize_window_by_id, check_accessibility_permissions, WindowInfo, ResizeRequest};
 use serde::{Deserialize, Serialize};
-use std::sync::Mutex;
 
-// State to store the current tray icon
+// State to store the current tray icon (kept for future tray state management)
+#[allow(dead_code)]
 struct TrayState {
+    #[allow(dead_code)]
     tray_id: Option<String>,
 }
 
@@ -34,6 +35,7 @@ fn resize_frontmost_window(width: i32, height: i32, center: bool) -> Result<(), 
 
 #[tauri::command]
 fn resize_specific_window(window_id: u32, width: i32, height: i32, center: bool) -> Result<(), String> {
+    eprintln!("Resizing window ID: {} to {}x{}, center: {}", window_id, width, height, center);
     let request = ResizeRequest {
         window_id,
         width,
@@ -279,20 +281,23 @@ pub fn run() {
             // set background color only when building for macOS
             #[cfg(target_os = "macos")]
             {
-                use cocoa::appkit::{NSColor, NSWindow};
-                use cocoa::base::{id, nil};
+                #[allow(deprecated)]
+                {
+                    use cocoa::appkit::{NSColor, NSWindow};
+                    use cocoa::base::{id, nil};
 
-                let ns_window = window.ns_window().unwrap() as id;
-                unsafe {
-                    // Set background color to match the gradient start #667eea
-                    let bg_color = NSColor::colorWithRed_green_blue_alpha_(
-                        nil,
-                        89.0 / 255.0,   // #5966bf red
-                        102.0 / 255.0,  // #5966bf green
-                        191.0 / 255.0,  // #5966bf blue
-                        1.0,
-                    );
-                    ns_window.setBackgroundColor_(bg_color);
+                    let ns_window = window.ns_window().unwrap() as id;
+                    unsafe {
+                        // Set background color to match the gradient start #667eea
+                        let bg_color = NSColor::colorWithRed_green_blue_alpha_(
+                            nil,
+                            89.0 / 255.0,   // #5966bf red
+                            102.0 / 255.0,  // #5966bf green
+                            191.0 / 255.0,  // #5966bf blue
+                            1.0,
+                        );
+                        ns_window.setBackgroundColor_(bg_color);
+                    }
                 }
             }
 

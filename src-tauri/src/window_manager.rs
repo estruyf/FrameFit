@@ -19,10 +19,8 @@ pub struct ResizeRequest {
 }
 
 #[cfg(target_os = "macos")]
-use cocoa::base::{id, nil};
-
-#[cfg(target_os = "macos")]
-use objc::runtime::Class;
+#[allow(deprecated)]
+use cocoa::base::id;
 
 #[cfg(target_os = "macos")]
 use core_foundation::{
@@ -35,9 +33,6 @@ use core_foundation::{
 
 #[cfg(target_os = "macos")]
 use core_graphics::window::{kCGWindowListOptionOnScreenOnly, CGWindowListCopyWindowInfo};
-
-#[cfg(target_os = "macos")]
-use core_graphics::display::{CGMainDisplayID, CGDisplayBounds};
 
 #[cfg(target_os = "macos")]
 use objc::{msg_send, sel, sel_impl};
@@ -263,6 +258,7 @@ pub fn get_frontmost_window() -> Result<WindowInfo, String> {
 }
 
 #[cfg(target_os = "macos")]
+#[allow(dead_code, unexpected_cfgs, deprecated)]
 unsafe fn nsstring_to_string(ns_string: id) -> String {
     let utf8: *const u8 = msg_send![ns_string, UTF8String];
     let len: usize = msg_send![ns_string, lengthOfBytesUsingEncoding: 4];
@@ -297,13 +293,23 @@ pub fn resize_window(window: &WindowInfo, width: i32, height: i32, center: bool)
         let (screen_width, screen_height) = screen_bounds.unwrap_or((1920, 1080));
         format!(
             r#"
+            activate application "{}"
             tell application "System Events"
                 tell application process "{}"
                     if (count of windows) > 0 then
                         set frontWindow to first window
+                        -- First resize the window
                         set size of frontWindow to {{{}, {}}}
                         
+                        -- Then center it
                         -- Use actual screen dimensions from Rust
+                        set screenWidth to {}
+                        set screenHeight to {}
+
+                        -- Add a pause to ensure the window has resized
+                        delay 0.1
+                        
+                        -- Try again to ensure correct screen dimensions
                         set screenWidth to {}
                         set screenHeight to {}
                         
@@ -322,11 +328,12 @@ pub fn resize_window(window: &WindowInfo, width: i32, height: i32, center: bool)
                 end tell
             end tell
             "#,
-            escaped_app, width, height, screen_width, screen_height, width, height
+            escaped_app, escaped_app, width, height, width, height, screen_width, screen_height, width, height
         )
     } else {
         format!(
             r#"
+            activate application "{}"
             tell application "System Events"
                 tell application process "{}"
                     if (count of windows) > 0 then
@@ -338,7 +345,7 @@ pub fn resize_window(window: &WindowInfo, width: i32, height: i32, center: bool)
                 end tell
             end tell
             "#,
-            escaped_app, width, height
+            escaped_app, escaped_app, width, height
         )
     };
 
