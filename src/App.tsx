@@ -75,15 +75,21 @@ function AppContent() {
           setWidth(w);
           setHeight(h);
           await resizeFrontmostByDimensions(w, h);
-        } else if (action === "custom_preset_1" || action === "custom_preset_2") {
-          const store = await Store.load("presets.json");
-          const customPresets = (await store.get("customPresets")) || {};
-          const presetKey = action === "custom_preset_1" ? "custom_1" : "custom_2";
-          const preset = (customPresets as any)[presetKey];
-          if (preset) {
-            setWidth(preset.width);
-            setHeight(preset.height);
-            await resizeFrontmostByDimensions(preset.width, preset.height);
+        } else if (action.startsWith("custom_preset_")) {
+          // Handle dynamic custom preset IDs
+          const indexStr = action.replace("custom_preset_", "");
+          const index = parseInt(indexStr, 10);
+          
+          if (!isNaN(index)) {
+            const store = await Store.load("presets.json");
+            const customPresetsArray = await store.get("customPresets");
+            
+            if (Array.isArray(customPresetsArray) && customPresetsArray[index]) {
+              const preset = customPresetsArray[index];
+              setWidth(preset.width);
+              setHeight(preset.height);
+              await resizeFrontmostByDimensions(preset.width, preset.height);
+            }
           }
         }
       });

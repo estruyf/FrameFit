@@ -42,14 +42,14 @@ pub fn run() {
                         let _ = window.set_focus();
                     }
                 }
-                // Preset handlers - store the preset and emit to frontend
-                "preset_iphone_se" | "preset_iphone_14" | "preset_ipad" | "preset_hd" | "preset_fhd" |
-                "custom_preset_1" | "custom_preset_2" => {
-                    if let Some(window) = app_handle.get_webview_window("main") {
-                        let _ = window.emit("tray_menu_action", event.id.0.as_str());
+                // Preset handlers - emit any preset menu action to frontend
+                id => {
+                    if id.starts_with("preset_") || id.starts_with("custom_preset_") {
+                        if let Some(window) = app_handle.get_webview_window("main") {
+                            let _ = window.emit("tray_menu_action", id);
+                        }
                     }
                 }
-                _ => {}
             }
         })
         .setup(|app| {
@@ -82,7 +82,8 @@ pub fn run() {
 
                 app.set_menu(menu)?;
 
-                // Create tray menu with presets
+                // Create tray menu with presets - build dynamically based on custom presets
+                // Build default presets submenu
                 let preset_iphone_se = tauri::menu::MenuItem::with_id(app, "preset_iphone_se", "iPhone SE (375×667)", true, None::<&str>)?;
                 let preset_iphone_14 = tauri::menu::MenuItem::with_id(app, "preset_iphone_14", "iPhone 14 (390×844)", true, None::<&str>)?;
                 let preset_ipad = tauri::menu::MenuItem::with_id(app, "preset_ipad", "iPad (768×1024)", true, None::<&str>)?;
@@ -93,20 +94,15 @@ pub fn run() {
                     .items(&[&preset_iphone_se, &preset_iphone_14, &preset_ipad, &preset_hd, &preset_fhd])
                     .build()?;
 
-                let custom_preset_1 = tauri::menu::MenuItem::with_id(app, "custom_preset_1", "My Size 1", true, None::<&str>)?;
-                let custom_preset_2 = tauri::menu::MenuItem::with_id(app, "custom_preset_2", "My Size 2", true, None::<&str>)?;
-
-                let custom_presets_menu = SubmenuBuilder::new(app, "Custom Presets")
-                    .items(&[&custom_preset_1, &custom_preset_2])
-                    .build()?;
-
                 let show_window_item = tauri::menu::MenuItem::with_id(app, "show_window", "Show Window", true, None::<&str>)?;
                 let quit_item = tauri::menu::MenuItem::with_id(app, "quit_tray", "Quit", true, None::<&str>)?;
 
+                // Build tray menu with static presets
                 let tray_menu = SubmenuBuilder::new(app, "FrameFit")
-                    .items(&[&presets_menu, &custom_presets_menu])
+                    .item(&presets_menu)
                     .separator()
-                    .items(&[&show_window_item, &quit_item])
+                    .item(&show_window_item)
+                    .item(&quit_item)
                     .build()?;
 
                 let _tray = TrayIconBuilder::new()
