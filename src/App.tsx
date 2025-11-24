@@ -58,24 +58,47 @@ function AppContent() {
 
   return (
     <div className="app">
-      <div className="header">
-        <h1>FrameFit</h1>
-        <div className="header-actions">
-          {!hasPermissions && <div className="badge warning">No Permissions</div>}
-          <div className="menu-wrapper">
-            <button className="btn-icon" onClick={() => setShowMenu(!showMenu)}>
-              ⋮
-            </button>
-            {showMenu && (
-              <div className="menu">
-                <button onClick={() => { exportPresets(); setShowMenu(false); }}>Export Presets</button>
-                <button onClick={() => { importPresetsHandler(); setShowMenu(false); }}>Import Presets</button>
-                <button onClick={() => { resetPresets(); setShowMenu(false); }}>Reset to Defaults</button>
-              </div>
-            )}
+      {!hasPermissions && (
+        <div className="permissions-modal-overlay">
+          <div className="permissions-modal">
+            <h2>🔒 Accessibility Permissions Required</h2>
+            <p>FrameFit needs accessibility permissions to resize windows.</p>
+            
+            <div className="instructions">
+              <h3>How to enable:</h3>
+              <ol>
+                <li>Open <strong>System Settings</strong></li>
+                <li>Go to <strong>Privacy & Security</strong></li>
+                <li>Select <strong>Accessibility</strong></li>
+                <li>Click the <strong>+</strong> button</li>
+                <li>Find and select <strong>FrameFit</strong></li>
+              </ol>
+            </div>
+            
+            <p className="note">After enabling, you may need to restart the app.</p>
           </div>
         </div>
-      </div>
+      )}
+      
+      <div className="app">
+        <div className="header">
+          <h1>FrameFit</h1>
+          <div className="header-actions">
+            {!hasPermissions && <div className="badge warning">No Permissions</div>}
+            <div className="menu-wrapper">
+              <button className="btn-icon" onClick={() => setShowMenu(!showMenu)}>
+                ⋮
+              </button>
+              {showMenu && (
+                <div className="menu">
+                  <button onClick={() => { exportPresets(); setShowMenu(false); }}>Export Presets</button>
+                  <button onClick={() => { importPresetsHandler(); setShowMenu(false); }}>Import Presets</button>
+                  <button onClick={() => { resetPresets(); setShowMenu(false); }}>Reset to Defaults</button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
       <div className="presets">
         {presets.map((size, index) => (
@@ -230,6 +253,7 @@ function AppContent() {
           <span className="toast-dismiss">×</span>
         </div>
       )}
+      </div>
     </div>
   );
 }
