@@ -1,5 +1,6 @@
 import { useApp } from "../context/AppContext";
 import { DEFAULT_PRESETS } from "../context/AppContext";
+import { Store } from "@tauri-apps/plugin-store";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { save } from "@tauri-apps/plugin-dialog";
 
@@ -20,11 +21,12 @@ export function usePresetManagement() {
     setMessage,
   } = useApp();
 
-  async function loadPresets() {
-    if (!store) return;
+  async function loadPresets(storeInstance?: Store) {
+    const storeToUse = storeInstance || store;
+    if (!storeToUse) return;
 
     try {
-      const saved = await store.get<Preset[]>("customPresets");
+      const saved = await storeToUse.get<Preset[]>("customPresets");
 
       if (saved && Array.isArray(saved) && saved.length > 0) {
         setPresets([...DEFAULT_PRESETS, ...saved]);
@@ -32,8 +34,8 @@ export function usePresetManagement() {
         setPresets(DEFAULT_PRESETS);
 
         if (saved === null || saved === undefined) {
-          await store.set("customPresets", []);
-          await store.save();
+          await storeToUse.set("customPresets", []);
+          await storeToUse.save();
         }
       }
     } catch (error) {
@@ -41,8 +43,8 @@ export function usePresetManagement() {
       setPresets(DEFAULT_PRESETS);
 
       try {
-        await store.set("customPresets", []);
-        await store.save();
+        await storeToUse.set("customPresets", []);
+        await storeToUse.save();
       } catch (initError) {
         console.error("Failed to initialize store:", initError);
       }

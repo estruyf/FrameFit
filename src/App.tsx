@@ -42,7 +42,7 @@ function AppContent() {
     async function initialize() {
       const s = await Store.load("presets.json");
       setContextStore(s);
-      await loadPresets();
+      await loadPresets(s);
 
       const hasPerms = await checkPermissions();
       setHasPermissions(hasPerms);
