@@ -16,7 +16,8 @@
         "width": 600,
         "height": 850,
         "resizable": false,
-        "center": true
+        "center": true,
+        "label": "main"
       }
     ],
     "security": {
