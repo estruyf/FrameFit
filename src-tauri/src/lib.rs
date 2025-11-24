@@ -5,6 +5,12 @@ use tauri::menu::{MenuBuilder, SubmenuBuilder};
 use tauri_plugin_store::StoreExt;
 use window_manager::{get_frontmost_window, list_windows, resize_window, resize_window_by_id, check_accessibility_permissions, WindowInfo, ResizeRequest};
 use serde::{Deserialize, Serialize};
+use std::sync::Mutex;
+
+// State to store the current tray icon
+struct TrayState {
+    tray_id: Option<String>,
+}
 
 const TRAY_ID: &str = "main_tray";
 
@@ -47,10 +53,9 @@ async fn rebuild_tray_menu(app_handle: tauri::AppHandle, custom_presets: Vec<Pre
     {
         eprintln!("Rebuilding tray menu with {} custom presets", custom_presets.len());
         
-        // Remove the old tray if it exists
-        if let Some(_) = app_handle.remove_tray_by_id(TRAY_ID) {
-            eprintln!("Removed old tray menu");
-        }
+        // Get the existing tray
+        let tray = app_handle.tray_by_id(TRAY_ID)
+            .ok_or("Tray not found")?;
         
         // Build default presets submenu with consistent IDs
         let preset_iphone_se = tauri::menu::MenuItem::with_id(&app_handle, "preset_iphone_se", "iPhone SE (375×667)", true, None::<&str>)
@@ -68,7 +73,6 @@ async fn rebuild_tray_menu(app_handle: tauri::AppHandle, custom_presets: Vec<Pre
         let mut custom_items = Vec::new();
         for preset in custom_presets.iter() {
             let label = format!("{} ({}×{})", preset.name, preset.width, preset.height);
-            // Use a sanitized version of the preset name as the ID to keep it stable
             let safe_id = format!("custom_preset_{}", preset.name.to_lowercase().replace(" ", "_"));
             eprintln!("Adding custom preset: {} with id: {}", label, safe_id);
             let item = tauri::menu::MenuItem::with_id(&app_handle, &safe_id, &label, true, None::<&str>)
@@ -105,7 +109,7 @@ async fn rebuild_tray_menu(app_handle: tauri::AppHandle, custom_presets: Vec<Pre
         let quit_item = tauri::menu::MenuItem::with_id(&app_handle, "quit_tray", "Quit", true, None::<&str>)
             .map_err(|e| e.to_string())?;
 
-        // Build tray menu
+        // Build new tray menu
         let tray_menu = SubmenuBuilder::new(&app_handle, "FrameFit")
             .item(&presets_menu)
             .separator()
@@ -114,20 +118,12 @@ async fn rebuild_tray_menu(app_handle: tauri::AppHandle, custom_presets: Vec<Pre
             .build()
             .map_err(|e| e.to_string())?;
 
-        // Create a new tray with the fixed ID
-        match TrayIconBuilder::with_id(TRAY_ID)
-            .icon(app_handle.default_window_icon().unwrap().clone())
-            .menu(&tray_menu)
-            .build(&app_handle) {
-            Ok(_tray) => {
-                eprintln!("Successfully created new tray menu with id: {}", TRAY_ID);
-                Ok(())
-            }
-            Err(e) => {
-                eprintln!("Failed to create tray: {:?}", e);
-                Err(format!("Failed to rebuild tray menu: {}", e))
-            }
-        }
+        // Update the tray menu
+        tray.set_menu(Some(tray_menu))
+            .map_err(|e| format!("Failed to update tray menu: {}", e))?;
+
+        eprintln!("Successfully updated tray menu");
+        Ok(())
     }
 
     #[cfg(not(target_os = "macos"))]
@@ -139,6 +135,9 @@ async fn rebuild_tray_menu(app_handle: tauri::AppHandle, custom_presets: Vec<Pre
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .manage(TrayState {
+            tray_id: None,
+        })
         .on_menu_event(|app_handle, event| {
             match event.id.0.as_str() {
                 "quit" | "quit_tray" => std::process::exit(0),
