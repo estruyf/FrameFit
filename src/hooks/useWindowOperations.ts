@@ -38,6 +38,27 @@ export function useWindowOperations() {
     }
   }
 
+  async function resizeFrontmostByDimensions(
+    width: number,
+    height: number
+  ): Promise<void> {
+    setLoading(true);
+    try {
+      await invoke("resize_frontmost_window", {
+        width,
+        height,
+        center: centerWindow,
+      });
+      setMessage("✅ Resized!");
+      setTimeout(() => setMessage(""), 2000);
+    } catch (error) {
+      setMessage(`❌ ${error}`);
+      setTimeout(() => setMessage(""), 10000);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function resizeFrontmost(): Promise<void> {
     setLoading(true);
     try {
@@ -85,5 +106,6 @@ export function useWindowOperations() {
     loadWindows,
     resizeFrontmost,
     resizeSelected,
+    resizeFrontmostByDimensions,
   };
 }

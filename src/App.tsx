@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Store } from "@tauri-apps/plugin-store";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { AppProvider, useApp, DEFAULT_PRESETS } from "./context/AppContext";
 import { usePresetManagement } from "./hooks/usePresetManagement";
 import { useWindowOperations } from "./hooks/useWindowOperations";
@@ -35,7 +36,7 @@ function AppContent() {
   } = useApp();
 
   const { loadPresets, addPreset, deletePreset, exportPresets, importPresetsHandler, resetPresets } = usePresetManagement();
-  const { checkPermissions, loadWindows, resizeFrontmost, resizeSelected } = useWindowOperations();
+  const { checkPermissions, loadWindows, resizeFrontmost, resizeSelected, resizeFrontmostByDimensions } = useWindowOperations();
 
   useEffect(() => {
     async function initialize() {
@@ -54,6 +55,43 @@ function AppContent() {
     }
 
     initialize();
+
+    // Listen for tray menu actions
+    const setupListeners = async () => {
+      const window = getCurrentWindow();
+      const unlistenTray = await window.listen("tray_menu_action", async (event: any) => {
+        const action = event.payload;
+
+        const presetMap: Record<string, [number, number]> = {
+          "preset_iphone_se": [375, 667],
+          "preset_iphone_14": [390, 844],
+          "preset_ipad": [768, 1024],
+          "preset_hd": [1280, 720],
+          "preset_fhd": [1920, 1080],
+        };
+
+        if (presetMap[action]) {
+          const [w, h] = presetMap[action];
+          setWidth(w);
+          setHeight(h);
+          await resizeFrontmostByDimensions(w, h);
+        } else if (action === "custom_preset_1" || action === "custom_preset_2") {
+          const store = await Store.load("presets.json");
+          const customPresets = (await store.get("customPresets")) || {};
+          const presetKey = action === "custom_preset_1" ? "custom_1" : "custom_2";
+          const preset = (customPresets as any)[presetKey];
+          if (preset) {
+            setWidth(preset.width);
+            setHeight(preset.height);
+            await resizeFrontmostByDimensions(preset.width, preset.height);
+          }
+        }
+      });
+
+      return unlistenTray;
+    };
+
+    setupListeners().catch(err => console.error("Failed to setup listeners:", err));
   }, []);
 
   return (
@@ -218,9 +256,12 @@ function AppContent() {
             Resize Top Window
           </button>
           <button
-            onClick={() => {
+            onClick={async () => {
               setShowWindowList(!showWindowList);
-              if (!showWindowList) loadWindows();
+              if (!showWindowList) {
+                const windowsList = await loadWindows();
+                setWindows(windowsList);
+              }
             }}
             className="btn btn-secondary"
           >
@@ -232,7 +273,14 @@ function AppContent() {
           <div className="window-list">
             <div className="window-list-header">
               <span>Select a window to resize</span>
-              <button onClick={loadWindows} className="btn-icon" disabled={loading}>
+              <button
+                onClick={async () => {
+                  const windowsList = await loadWindows();
+                  setWindows(windowsList);
+                }}
+                className="btn-icon"
+                disabled={loading}
+              >
                 ↻
               </button>
             </div>
@@ -280,3 +328,4 @@ export default function App() {
     </AppProvider>
   );
 }
+
